@@ -1,0 +1,151 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                    📚 ÍNDICE - INFRAESTRUTURA COMPLETA                         ║
+║                                                                                ║
+║           Instruções para GitHub Copilot - Projeto ms-charge-account-worker    ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+📂 ESTRUTURA DE DIRETÓRIOS
+═══════════════════════════════════════════════════════════════════════════════
+.copilot/
+├── INDEX.txt                    ← Você está aqui!
+├── README.md                    ← COMECE AQUI (Quick Reference)
+├── AGENT.md                     ← Diretrizes Principais ⭐⭐⭐
+├── PLANS.md                     ← Guia de Como Usar Plans
+├── SUMMARY.md                   ← Resumo Executivo
+├── CHECKLIST.md                 ← Validação do que foi criado
+└── plans/                       ← (Guardar plans futuros)
+doc/
+├── architecture/
+│   ├── HEXAGONAL.md             ← Arquitetura Hexagonal
+│   └── DDD.md                   ← Domain-Driven Design
+├── guides/
+│   └── TESTING.md               ← Estratégia de Testes
+└── plans/                       ← (Alternativa para guardar plans)
+CONTRIBUTING.md                  ← Guia de Contribuição
+plan-msChargeAccountWorker.prompt.md  ← Plan Principal do Projeto
+📖 GUIA DE LEITURA RECOMENDADO
+═══════════════════════════════════════════════════════════════════════════════
+🟢 COMECE AQUI (5 minutos)
+   └─ .copilot/README.md
+🔵 ANTES DE CADA COMMIT (2 minutos)
+   └─ .copilot/AGENT.md → Seção: Padrão de Commits
+🟠 ANTES DE SUBMETER PR (5 minutos)
+   └─ .copilot/AGENT.md → Seção: Padrão de Code Review
+🟣 AO IMPLEMENTAR FEATURE (30 minutos)
+   ├─ doc/architecture/HEXAGONAL.md
+   ├─ doc/architecture/DDD.md
+   └─ plan-msChargeAccountWorker.prompt.md
+🟡 AO ESCREVER TESTES (15 minutos)
+   └─ doc/guides/TESTING.md
+🔴 PARA ENTENDER TUDO (60 minutos)
+   ├─ .copilot/README.md
+   ├─ .copilot/AGENT.md
+   ├─ .copilot/PLANS.md
+   ├─ doc/architecture/HEXAGONAL.md
+   ├─ doc/architecture/DDD.md
+   └─ doc/guides/TESTING.md
+🎯 REFERÊNCIA RÁPIDA POR TAREFA
+═══════════════════════════════════════════════════════════════════════════════
+📝 FAZER COMMIT
+   Arquivo: .copilot/AGENT.md
+   Seção: Padrão de Commits
+   Tipo: feat, fix, refactor, test, docs, chore, perf, ci
+   Formato: type(scope): subject
+   Exemplo: feat(domain): criar value object StatusConta
+🔍 REVISAR CÓDIGO
+   Arquivo: .copilot/AGENT.md
+   Seção: Padrão de Code Review
+   Items: 8 categorias, 35+ critérios
+   Checklist: Arquitetura, Qualidade, Testes, Performance, Segurança, Docs, Git
+🏗️ ESTRUTURAR CÓDIGO
+   Arquivo: doc/architecture/HEXAGONAL.md
+   Camadas: Domain, Application, Presentation, Infrastructure
+   Conceito: Ports & Adapters
+📊 MODELAR DOMÍNIO
+   Arquivo: doc/architecture/DDD.md
+   Blocos: Entities, Value Objects, Aggregates, Events, Services, Repositories
+🧪 ESCREVER TESTES
+   Arquivo: doc/guides/TESTING.md
+   Padrão: AAA (Arrange-Act-Assert)
+   Pirâmide: Unitários (80%), Aplicação (70%), Integração (60%), E2E
+📋 CRIAR PLAN
+   Arquivo: .copilot/PLANS.md
+   Nomenclatura: plan-${camelCaseName}.prompt.md
+   Localização: .copilot/plans/
+   Estrutura: Steps, Diretórios, Dependências, Considerações, Checklist
+🚀 COMEÇAR CONTRIBUIÇÃO
+   Arquivo: CONTRIBUTING.md
+   Passos: Setup → Branch → Código → Commit → Push → PR → Review → Merge
+❓ ENCONTRAR AJUDA
+   Arquivo: .copilot/README.md
+   Seção: Precisa de Ajuda?
+   (Tabela com referências)
+📊 ESTATÍSTICAS DA INFRAESTRUTURA
+═══════════════════════════════════════════════════════════════════════════════
+Arquivos Criados:        9
+Linhas de Documentação:  ~5.000+
+Padrões Definidos:       6+
+Checklist Items:         100+
+Exemplos de Código:      20+
+Seções Principais:       50+
+✨ PADRÕES PRINCIPAIS COBERTOS
+═══════════════════════════════════════════════════════════════════════════════
+✅ Padrão de Commits     → Conventional Commits
+✅ Padrão de Code Review → 35+ critérios profissionais
+✅ Padrão de Documentação → Plans estruturados
+✅ Padrão de Código      → Java/Spring Best Practices
+✅ Padrão de Testes      → Pirâmide de 4 tipos
+✅ Padrão Arquitetural   → Hexagonal + DDD + SOLID + Clean Architecture
+🔄 WORKFLOW RECOMENDADO
+═══════════════════════════════════════════════════════════════════════════════
+1. Receber Tarefa
+   ↓
+2. Ler .copilot/README.md (Quick Start)
+   ↓
+3. Consultar Padrões Relevantes
+   ├─ Arquitetura: HEXAGONAL.md + DDD.md
+   ├─ Código: AGENT.md → Guia de Estilo
+   └─ Testes: TESTING.md
+   ↓
+4. Implementar conforme Plan
+   └─ plan-msChargeAccountWorker.prompt.md
+   ↓
+5. Fazer Commits Semânticos
+   └─ .copilot/AGENT.md → Padrão de Commits
+   ↓
+6. Submeter PR com Descrição
+   └─ CONTRIBUTING.md
+   ↓
+7. Code Review
+   └─ .copilot/AGENT.md → Padrão de Code Review
+   ↓
+8. Merge para Main
+💡 DICAS IMPORTANTES
+═══════════════════════════════════════════════════════════════════════════════
+💠 Sempre que começar uma nova feature, consulte HEXAGONAL.md
+💠 Sempre que fizer domínio, consulte DDD.md
+💠 Sempre que commitar, consulte AGENT.md → Padrão de Commits
+💠 Sempre que revisar, use AGENT.md → Code Review checklist
+💠 Sempre que testar, siga TESTING.md → Padrão AAA
+💠 Se estiver perdido, comece com .copilot/README.md
+🎯 PRÓXIMOS PASSOS
+═══════════════════════════════════════════════════════════════════════════════
+1. Leia este arquivo INDEX.txt (você está aqui!)
+2. Abra .copilot/README.md (Quick Start)
+3. Consulte AGENT.md (Diretrizes)
+4. Comece a implementação com plan-msChargeAccountWorker.prompt.md
+✅ VALIDAÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+[✓] Infraestrutura completa
+[✓] Padrões definidos
+[✓] Documentação pronta
+[✓] Exemplos inclusos
+[✓] Checklist disponível
+[✓] Pronto para uso!
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                          🚀 PRONTO PARA COMEÇAR!                              ║
+║                                                                                ║
+║          Próximo passo: Abra .copilot/README.md e comece a trabalhar!          ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+Versão: 1.0
+Data: 2026-04-16
+Status: ✅ Completo e Validado
