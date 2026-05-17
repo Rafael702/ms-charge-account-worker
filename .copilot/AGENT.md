@@ -7,11 +7,12 @@ Este documento define os padrões e diretrizes para que o GitHub Copilot trabalh
 ## 📋 Índice
 
 1. [Visão Geral do Projeto](#visão-geral-do-projeto)
-2. [Padrão de Commits](#padrão-de-commits)
-3. [Padrão de Code Review](#padrão-de-code-review)
-4. [Padrão de Documentação e Planos](#padrão-de-documentação-e-planos)
-5. [Guia de Estilo de Código](#guia-de-estilo-de-código)
-6. [Checklist de Qualidade](#checklist-de-qualidade)
+2. [Padrão de Idioma](#padrão-de-idioma)
+3. [Padrão de Commits](#padrão-de-commits)
+4. [Padrão de Code Review](#padrão-de-code-review)
+5. [Padrão de Documentação e Planos](#padrão-de-documentação-e-planos)
+6. [Guia de Estilo de Código](#guia-de-estilo-de-código)
+7. [Checklist de Qualidade](#checklist-de-qualidade)
 
 ---
 
@@ -28,6 +29,161 @@ Este documento define os padrões e diretrizes para que o GitHub Copilot trabalh
 - Persistência de resultados em banco de dados
 - API REST para consulta de lançamentos processados
 - Comunicação baseada em eventos (Kafka)
+
+---
+
+## 🌐 Padrão de Idioma
+
+### Convenção Adotada: **INGLÊS para Código | PORTUGUÊS para Documentação**
+
+Esta decisão garante consistência com padrões internacionais de desenvolvimento Java, enquanto mantém a comunicação clara em português.
+
+#### ✅ USE ENGLISH (Inglês) PARA:
+
+**Packages:**
+```java
+com.itau.chargeaccount.domain.entity
+com.itau.chargeaccount.domain.valueobject
+com.itau.chargeaccount.application.service
+com.itau.chargeaccount.infrastructure.persistence
+```
+
+**Classes:**
+```java
+// Entidades
+public class Charge { }
+public class Account { }
+
+// Value Objects
+public class ChargeStatus { }
+public class ProcessingResult { }
+
+// DTOs
+public class ChargeRequest { }
+public class ChargeResponse { }
+
+// Exceções
+public class ChargeNotFoundException extends RuntimeException { }
+public class InvalidAccountException extends RuntimeException { }
+
+// Interfaces (Ports)
+public interface ChargeRepository { }
+public interface EventPublisher { }
+
+// Implementações (Adapters)
+public class ChargeJpaAdapter { }
+public class KafkaEventPublisher { }
+
+// Services
+public class ChargeProcessingApplicationService { }
+public class ChargeConsultationApplicationService { }
+```
+
+**Métodos e Funções:**
+```java
+public void processCharge() { }
+public void validateAccount() { }
+public void publishEvent(Event event) { }
+public Charge findById(Long id) { }
+public void save(Charge charge) { }
+public void update(Charge charge) { }
+public void delete(Long id) { }
+```
+
+**Variáveis e Campos:**
+```java
+long accountId = 123L;
+BigDecimal chargeAmount = new BigDecimal("100.50");
+AccountStatus accountStatus = AccountStatus.ACTIVE;
+List<Charge> processedCharges = new ArrayList<>();
+```
+
+**Comentários de Código:**
+```java
+// Calculate total charges for account
+BigDecimal total = charges.stream()
+    .map(Charge::getAmount)
+    .reduce(BigDecimal.ZERO, BigDecimal::add);
+```
+
+#### ✅ USE PORTUGUÊS (Português) PARA:
+
+**Commits e Git:**
+```
+feat(cobrança): adicionar validação de conta
+fix(persistência): corrigir erro ao salvar lançamento
+refactor(domínio): extrair lógica de validação
+test(account-service): adicionar testes para StatusConta
+docs(readme): atualizar instruções de setup
+```
+
+**Issues e Pull Requests:**
+- Títulos e descrições em português
+- Labels podem ser em inglês ou português
+- Comentários em português
+
+**Documentação:**
+- README.md
+- CONTRIBUTING.md
+- CHANGELOG.md
+- Arquivos em `/doc/`
+- Comentários explicativos em português
+
+**Instruções e Guias:**
+- Como configurar ambiente
+- Como executar testes
+- Como fazer deploy
+- Guias de troubleshooting
+
+**Commits Message Format:**
+```
+<type>(<escopo em inglês>): <descrição em português>
+
+<corpo da mensagem em português>
+```
+
+**Exemplo de Commit Completo:**
+```
+feat(charge-processing): adicionar processamento em batch
+
+Implementa o processamento de até 20M registros por dia
+utilizando streams e batch processing para otimizar performance.
+
+Utiliza o padrão Charge.processingBatch() para:
+- Validar contas em paralelo
+- Persistir resultados de forma otimizada
+- Publicar eventos em lote
+
+Closes #42
+Refs: #38, #40
+```
+
+#### ⚠️ REGRAS IMPORTANTES
+
+| O que                              | Idioma | Exemplo |
+|------------------------------------|--------|---------|
+| Nomes de classe                    | Inglês | `Charge`, `Account`, `ProcessingResult` |
+| Nomes de método                    | Inglês | `processCharge()`, `validateAccount()` |
+| Nomes de package                   | Inglês | `com.itau.chargeaccount.domain.entity` |
+| Variáveis                          | Inglês | `chargeId`, `accountStatus` |
+| Constantes                         | Inglês | `BATCH_SIZE`, `TIMEOUT_SECONDS` |
+| Commits                            | Português | `feat(charge): adicionar validação` |
+| PRs/Issues                         | Português | Títulos e descrições |
+| Documentação                       | Português | README, guides, etc |
+| JavaDoc                            | Inglês | `/** Processes a charge **/` |
+| Logs                               | Inglês | `logger.info("Charge processed: {}", chargeId)` |
+| Testes Integrados são obrigatórios | Inglês | `logger.info("Charge processed: {}", chargeId)` |
+
+
+#### ❌ O que EVITAR
+
+- ❌ Misturar português e inglês na mesma classe
+- ❌ Traduzir padrões Java conhecidos (ex: não usar `ObjetoValor` ao invés de `ValueObject`)
+- ❌ Usar abreviações em português em código
+- ❌ Documentação em inglês quando deve ser em português
+- ❌ Commits com descrição em inglês
+- ❌ Nunca remover testes integrados
+- ❌ Não começar pelo TDD
 
 ---
 
@@ -344,32 +500,32 @@ com.itau.chargeaccount.infrastructure.persistence
 ```
 
 **Classes:**
-- Entidades: `Lancamento`, `Conta`, `ProcessamentoEncargo`
-- DTOs: `LancamentoDTO`, `ContaStatusDTO` (sufixo DTO)
-- Exceções: `LancamentoInvalidoException`, `ContaNaoEncontradaException`
-- Interfaces (Ports): `LancamentoRepository`, `PublishEventPort`
-- Implementações (Adapters): `LancamentoJpaAdapter`, `KafkaPublisherAdapter`
-- Services: `ProcessamentoApplicationService`, `ConsultaApplicationService`
+- Entidades: `Charge`, `Account`, `ChargeProcessing`
+- DTOs: `ChargeDTO`, `AccountStatusDTO` (sufixo DTO)
+- Exceções: `InvalidChargeException`, `AccountNotFoundException`
+- Interfaces (Ports): `ChargeRepository`, `EventPublisherPort`
+- Implementações (Adapters): `ChargeJpaAdapter`, `KafkaPublisherAdapter`
+- Services: `ChargeProcessingApplicationService`, `ChargeConsultationApplicationService`
 
 **Métodos:**
 ```java
-// Use verbos no infinitivo
-processarLancamento()
-validarConta()
-publicarEvento()
-consultarPorId()
-salvar()
-atualizar()
-deletar()
+// Use verbos no infinitivo em inglês
+processCharge()
+validateAccount()
+publishEvent()
+findById()
+save()
+update()
+delete()
 ```
 
 **Variáveis:**
 ```java
-// Descritivas e em camelCase
-long contaId = 123L;
-BigDecimal valorEncargo = new BigDecimal("100.50");
-StatusConta statusConta = StatusConta.ATIVA;
-List<Lancamento> lancamentosProcessados = new ArrayList<>();
+// Descritivas e em camelCase (inglês)
+long accountId = 123L;
+BigDecimal chargeAmount = new BigDecimal("100.50");
+AccountStatus accountStatus = AccountStatus.ACTIVE;
+List<Charge> processedCharges = new ArrayList<>();
 ```
 
 #### Formatação
@@ -417,10 +573,10 @@ public class Lancamento {
 ```java
 // ✅ BOM - Específico e significativo
 try {
-    conta = servicoConta.obterStatus(contaId);
-} catch (ContaNaoEncontradaException e) {
-    logger.warn("Conta não encontrada: {}", contaId, e);
-    lancamento.rejeitar("Conta não localizada");
+    account = accountService.getStatus(accountId);
+} catch (AccountNotFoundException e) {
+    logger.warn("Account not found: {}", accountId, e);
+    charge.reject("Account not found");
 }
 
 // ❌ RUIM - Genérico e sem contexto
@@ -435,14 +591,14 @@ try {
 
 ```java
 // ✅ BOM
-logger.debug("Processando lancamento com ID: {}", lancamento.getId());
-logger.info("Lancamento processado com sucesso: {}", lancamento.getId());
-logger.warn("Conta em bloqueio judicial. Lancamento rejeitado: {}", lancamentoId);
-logger.error("Erro ao publicar evento para conta: {}", contaId, exception);
+logger.debug("Processing charge with ID: {}", charge.getId());
+logger.info("Charge processed successfully: {}", charge.getId());
+logger.warn("Account in legal hold. Charge rejected: {}", chargeId);
+logger.error("Error publishing event for account: {}", accountId, exception);
 
 // ❌ RUIM
-System.out.println("Processing: " + lancamento);
-logger.info("" + lancamento);
+System.out.println("Processing: " + charge);
+logger.info("" + charge);
 ```
 
 #### Constants
@@ -451,7 +607,7 @@ logger.info("" + lancamento);
 // ✅ BOM
 public static final int BATCH_SIZE = 1000;
 public static final Duration TIMEOUT = Duration.ofSeconds(30);
-public static final String TOPIC_CONTA_STATUS = "conta.status.request";
+public static final String TOPIC_ACCOUNT_STATUS = "account.status.request";
 
 // ❌ RUIM
 int batchSize = 1000;
@@ -464,25 +620,25 @@ if (items.size() > 1000) { // Magic number!
 ```java
 @RequiredArgsConstructor
 @Getter
-public class Lancamento {
+public class Charge {
     
     // 1. Constantes
-    private static final Logger logger = LoggerFactory.getLogger(Lancamento.class);
+    private static final Logger logger = LoggerFactory.getLogger(Charge.class);
     
     // 2. Campos finais (imutáveis)
     @NonNull
     private final Long id;
     
     // 3. Campos mutáveis
-    private StatusLancamento status;
+    private ChargeStatus status;
     
     // 4. Construtor(es)
-    private Lancamento(Long id, BigDecimal valor) {
+    private Charge(Long id, BigDecimal amount) {
         this.id = id;
     }
     
     // 5. Métodos públicos (comportamento)
-    public void processar() {
+    public void process() {
         // ...
     }
     
@@ -494,7 +650,7 @@ public class Lancamento {
     // 7. toString, equals, hashCode
     @Override
     public String toString() {
-        return "Lancamento{" + "id=" + id + '}';
+        return "Charge{" + "id=" + id + '}';
     }
 }
 ```
