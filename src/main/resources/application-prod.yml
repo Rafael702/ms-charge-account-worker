@@ -1,0 +1,109 @@
+##O que for repetitivo ou tiver valor padrão, pode ser colocado no application.yml e sobrescrito aqui apenas o necessário para o ambiente de produção
+spring:
+  application:
+    name: ms-charge-account-worker
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 500
+          fetch_size: 200
+        order_inserts: true
+        order_updates: true
+        enable_lazy_load_no_trans: true
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:chargedb}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      retries: 5
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        linger.ms: 100
+        compression.type: snappy
+    consumer:
+      group-id: charge-account-worker
+      auto-offset-reset: earliest
+      max-poll-records: 500
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.itau.chargeaccount.domain.event"
+
+logging:
+  level:
+    root: WARN
+    com.itau.chargeaccount: INFO
+    org.springframework: WARN
+  pattern:
+    console: "%d{ISO8601} %5p %40.40logger{39} : %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+app:
+  file:
+    path: /data/charges.csv
+  batch:
+    size: 50000
+  kafka:
+    topics:
+      charge-events: charge.events
+      account-status: account.status.response
+      accounting-events: accounting.events
+      dlq: charge.events.dlq
+  application:
+    name: ms-charge-account-worker
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api/v1
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        slowCallRateThreshold: 100
+        slowCallDurationThreshold: 2000ms
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30000ms
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - java.io.IOException
+          - org.springframework.kafka.KafkaException
+
