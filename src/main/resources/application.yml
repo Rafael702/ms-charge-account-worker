@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: ms-charge-account-worker
+
+server:
+  port: 8082

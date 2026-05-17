@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: ms-charge-account-worker
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 100
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      acks: all
+      retries: 3
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: charge-account-worker
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.itau.chargeaccount.domain.event"
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+logging:
+  level:
+    root: WARN
+    com.itau.chargeaccount: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  application:
+    name: ms-charge-account-worker-test
+
+app:
+  file:
+    path: /tmp/charges.csv
+  batch:
+    size: 10000
+  kafka:
+    topics:
+      charge-events: charge.events.test
+      account-status: account.status.test
+      accounting-events: accounting.events.test
+      dlq: charge.events.dlq.test
+  application:
+    name: ms-charge-account-worker
+
+server:
+  port: 0

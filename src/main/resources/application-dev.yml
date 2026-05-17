@@ -1,0 +1,104 @@
+spring:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 100
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  datasource:
+    url: jdbc:h2:mem:chargedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      retries: 3
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: charge-account-worker
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.itau.chargeaccount.domain.event"
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+logging:
+  level:
+    root: INFO
+    com.itau.chargeaccount: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+app:
+  file:
+    path: classpath:file-test.csv
+  batch:
+    size: 10000
+  kafka:
+    topics:
+      charge-events: charge.events
+      account-status: account.status.response
+      accounting-events: accounting.events
+      dlq: charge.events.dlq
+  application:
+    name: ms-charge-account-worker
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1000
+        intervalFunction: exponential
+        exponentialBackoffMultiplier: 2
+    instances:
+      kafkaPublisher:
+        baseConfig: default
+      schedulerRetry:
+        baseConfig: default
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        slowCallRateThreshold: 100
+        slowCallDurationThreshold: 2000
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+    instances:
+      kafkaPublisher:
+        baseConfig: default
+      schedulerCircuitBreaker:
+        baseConfig: default

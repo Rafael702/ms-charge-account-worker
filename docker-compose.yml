@@ -1,0 +1,211 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # POSTGRESQL - Banco de Dados
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: charge-account-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-chargedb}
+      POSTGRES_USER: ${POSTGRES_USER:-chargeuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chargepass123}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - charge-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chargeuser}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ============================================
+  # PGADMIN - GUI para PostgreSQL
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: charge-account-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - charge-network
+    restart: unless-stopped
+
+  # ============================================
+  # KAFKA - Message Broker
+  # ============================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: charge-account-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_LOG_RETENTION_MS: 604800000
+      KAFKA_COMPRESSION_TYPE: snappy
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    networks:
+      - charge-network
+    healthcheck:
+      test: kafka-broker-api-versions.sh --bootstrap-server=localhost:9092
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ============================================
+  # ZOOKEEPER - Kafka Coordinator
+  # ============================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: charge-account-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SYNC_LIMIT: 5
+      ZOOKEEPER_INIT_LIMIT: 10
+      ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: INFO
+    ports:
+      - "2181:2181"
+    networks:
+      - charge-network
+    restart: unless-stopped
+
+  # ============================================
+  # KAFKA UI - Interface Gráfica para Kafka
+  # ============================================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: charge-account-kafka-ui
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    ports:
+      - "8080:8080"
+    networks:
+      - charge-network
+    restart: unless-stopped
+
+  # ============================================
+  # KAFKA INIT - Criar Topics
+  # ============================================
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: charge-account-kafka-init
+    depends_on:
+      - kafka
+    entrypoint: >
+      bash -c '
+      echo "Aguardando Kafka iniciar..."
+
+      echo "Criando topics..."
+
+      kafka-topics --create \
+        --bootstrap-server kafka:29092 \
+        --topic charge.events \
+        --partitions 10 \
+        --replication-factor 1 \
+        --config retention.ms=86400000 \
+        --config compression.type=snappy \
+        --if-not-exists
+
+      kafka-topics --create \
+        --bootstrap-server kafka:29092 \
+        --topic account.status.response \
+        --partitions 10 \
+        --replication-factor 1 \
+        --config retention.ms=86400000 \
+        --config compression.type=snappy \
+        --if-not-exists
+
+      kafka-topics --create \
+        --bootstrap-server kafka:29092 \
+        --topic accounting.events \
+        --partitions 10 \
+        --replication-factor 1 \
+        --config retention.ms=86400000 \
+        --config compression.type=snappy \
+        --if-not-exists
+
+      kafka-topics --create \
+        --bootstrap-server kafka:29092 \
+        --topic charge.events.dlq \
+        --partitions 3 \
+        --replication-factor 1 \
+        --config retention.ms=604800000 \
+        --if-not-exists
+
+      echo "✅ Topics criados com sucesso!"
+
+      kafka-topics --list --bootstrap-server kafka:29092
+      '
+    networks:
+      - charge-network
+
+  # ============================================
+  # ACCOUNT SIMULATOR - Mock do sistema de contas
+  # Consome: charge.events
+  # Publica: account.status.response
+  # ============================================
+  account-simulator:
+    build:
+      context: ./account-simulator
+      dockerfile: Dockerfile
+    image: account-simulator:1.0.0
+    container_name: charge-account-simulator
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_TOPIC_CHARGE_EVENTS: charge.events
+      KAFKA_TOPIC_ACCOUNT_STATUS: account.status.response
+      SERVER_PORT: 8083
+    ports:
+      - "8083:8083"
+    networks:
+      - charge-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  charge-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
